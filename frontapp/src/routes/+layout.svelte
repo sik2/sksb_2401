@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+    import { goto } from "$app/navigation";
 
     let member = {};
     let isLogin = false;
@@ -15,26 +16,48 @@
                 if ( data ) {
                     console.log(data.data?.item);
                     member = data.data?.item;
-                    isLogin = true;
+                    if (data.data?.item) {
+                        isLogin = true
+                        goto("/")
+                    }
                 }
             })
             .catch(error => {
                 // 실패시 처리
+                isLogin = false;
                 console.error(error);
             });
     })
+
+    const logout = () => {
+           fetch('http://localhost:8090/api/v1/members/logout', {
+               method: "POST",
+               credentials: "include"
+           })
+               .then(response => response.json())
+               .then(data => {
+                   console.log(data);
+                   goto("/")
+               })
+               .catch(error => {
+                   // 실패시 처리
+                   console.error(error);
+               });
+    }
 </script>
 <header>
     <ul>
         {#if isLogin }
-            <li><a href="/logout">로그아웃</a></li>
+            <li><a on:click={() => logout()}>로그아웃</a></li>
         {:else}
             <li><a href="/login">로그인</a></li>
         {/if}
     </ul>
 </header>
 <div>
-    <h2>id : {member.username}</h2>
+    {#if member }
+        <h2>id : {member.username}</h2>
+    {/if}
 </div>
 <!-- 공통요소 -->
 <slot />
